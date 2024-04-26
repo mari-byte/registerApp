@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ],
+  "compilerOptions": {
+    "types": ["node", "webpack-env", "jest", "vuex"],
+  },
+  "include": ["node_modules/vuex/types/index.d.ts", "src/**/*.ts", "src/**/*.d.ts"]
+}
