@@ -1,21 +1,23 @@
-#  study_pra
+# ver1.0作成
+学習サポートアプリを作成しました。  
+主機能と課題、次回のバージョンについてを簡略に以下にまとめます。  
 
-This template should help get you started developing with Vue 3 in Vite.
+主機能
+- ユーザーが設定した問題に対する解答結果が✕の場合かつ現在日時の差が1週間以上たっている場合に、一覧画面で対象の列が点滅する。
 
-## Recommended IDE Setup
+課題
+- 更新内容に関して、コンポーネントからの受け渡しが理解不足のため要修正
+- カレンダーのv-modelの処理
+- 更新時に解答結果を登録しないように修正した場合の修正が上手くいっていない(バグ)
+- sqlのupdate部分
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+次回のバージョンについて
+- 上記の課題点の修正
+- 新機能として、選択削除機能を追加
+- 新機能として、csvファイルの読み込み機能を追加  
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
-
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+# 参考
+以下、参考となります。
 
 ## Customize configuration
 
