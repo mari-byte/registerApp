@@ -12,7 +12,9 @@
       v-if="(forms && forms.length && forms[0].answer !== null) || showResultsList"
     >
       <Form class="element">
-        <label class="element" for="input">{{ $t('update.questionNumberLabel') + (index + 1) }}</label>
+        <label class="element" for="input">{{
+          $t('update.questionNumberLabel') + (index + 1)
+        }}</label>
         <div class="inline-radio">
           <div>
             <input
@@ -21,7 +23,7 @@
               :value="0"
               v-model="resultValue[index]"
               checked
-              @change="okE(index, dates[index])"
+              @change="okE(index, dates[index], forms[index])"
             /><label>○</label>
           </div>
 
@@ -31,7 +33,7 @@
               name="member"
               :value="1"
               v-model="resultValue[index]"
-              @change="ngE(index, dates[index])"
+              @change="ngE(index, dates[index], forms[index])"
             /><label>×</label>
           </div>
         </div>
@@ -45,7 +47,7 @@
             :placeholder="$t('date.placeholder')"
             :select-text="$t('date.select')"
             :cancel-text="$t('date.cancel')"
-            @update:model-value="selectDate(dates[index], index)"
+            @update:model-value="selectDate(dates[index], index, forms[index])"
           ></VueDatePicker>
         </div>
         <br />
@@ -70,14 +72,12 @@ const props = defineProps({
 
 const store = useStore()
 const emit = defineEmits()
-const {t} = useI18n()
+const { t } = useI18n()
 
 const showDelButton = ref(false)
 const showResultsList = ref(false)
 const showFlg = ref(true)
 const selectedItem = ref(props.modelValue)
-
-
 const resetField = () => {
   showFlg.value = false
 }
@@ -86,53 +86,9 @@ defineExpose({
   resetField
 })
 
-const okE = (index: number, selectedDate?: Date) => {
-  if (selectedDate === undefined) {
-    return
-  }
-  const date = new Date(selectedDate)
-  const isoDateString = date.toISOString()
-
-  let results = {
-    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
-    date: isoDateString,
-    problem_number: index + 1
-  }
-
-  // ミューテーションが完了してからゲッターを使ってデータを取得
-  forms.value[index] = results
-  dates.value[index] = selectedDate
-
-  emit('updateResultData', results)
-}
-
-const ngE = (index: number, selectedDate?: Date) => {
-  if (selectedDate === undefined) {
-    return
-  }
-  console.log('✕を選択しました')
-  console.log('気になる部分::', selectedDate)
-  const date = new Date(selectedDate)
-  const isoDateString = date.toISOString()
-
-  let results = {
-    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
-    date: isoDateString,
-    problem_number: index + 1
-  }
-
-  // ミューテーションが完了してからゲッターを使ってデータを取得
-  forms.value[index] = results
-  dates.value[index] = selectedDate
-
-  emit('updateResultData', results)
-}
-
 const dates = computed(() => {
-  console.log('知りたいdates::', props.detalData)
   if (props.detalData && props.detalData.length && props.detalData[0] !== undefined) {
     showDelButton.value = true
-    console.log('エラーの際にはここには来てほしくない')
     return props.detalData.map((items) => items.date)
   } else {
     return []
@@ -142,7 +98,6 @@ const dates = computed(() => {
 // const format: string = 'yyyy-MM-dd HH:mm'
 const format: string = 'yyyy-MM-dd'
 const forms = computed(() => {
-  console.log('めちゃくちゃ気になるとこforms', props.detalData)
   return props.detalData
 })
 const initForms = {
@@ -167,24 +122,20 @@ const handleCreateButtonClick = (e: Event) => {
 
 const createResult = () => {
   showDelButton.value = true
-  // console.log('これですむ', forms.value[0].answer)
-  // if (forms?.value[0]?.answer === null) {
   if (forms.value[0]?.answer === null) {
     deleteResult()
   }
   showResultsList.value = true
-  console.log('エミット前に渡すものの確認', forms.value.length)
-  emit('getListLength', forms.value.length)
+  emit('getListLength', forms.value.length + 1)
   forms.value.push(initForms)
 }
 
 const deleteResult = () => {
-  // forms.value.splice(forms.value.length -1, 1)
   forms.value.splice(-1, 1)
   if (forms.value.length === 0) {
     showDelButton.value = false
   }
-  emit('getListLength', forms.value.length)
+  emit('getListLength', forms.value.length, forms.value)
 }
 
 const custombuttonName = computed(() => {
@@ -223,14 +174,39 @@ const custombuttonDelName = computed(() => {
   }
 })
 
-const selectDate = (selectedDate: Date, index: number) => {
-  console.log('showResultsList', showResultsList.value)
-  const date = new Date(selectedDate)
-  const isoDateString = date.toISOString()
-  console.log(isoDateString)
+const okE = (index: number, selectedDate?: Date, values?) => {
+  if (selectedDate === undefined) {
+    return
+  }
 
-  console.log('決定した際selectedDate::', selectedDate)
-  console.log('決定した際index::', index)
+  let results = {
+    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
+    date: values.date,
+    problem_number: index + 1,
+    updateId: values.updateId
+  }
+
+  emit('updateResultData', results,index)
+}
+
+const ngE = (index: number, selectedDate?: Date, values?) => {
+  if (selectedDate === undefined) {
+    return
+  }
+
+  let results = {
+    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
+    date: values.date,
+    problem_number: index + 1,
+    updateId: values.updateId
+  }
+  // forms.value[index] = results
+  // dates.value[index] = selectedDate
+
+  emit('updateResultData', results,index)
+}
+
+const selectDate = (selectedDate: Date, index: number, updateId?) => {
   const year = selectedDate.getFullYear()
   const month = ('0' + (selectedDate.getMonth() + 1)).slice(-2) // 月は0-indexedなので+1する
   const day = ('0' + selectedDate.getDate()).slice(-2)
@@ -239,13 +215,13 @@ const selectDate = (selectedDate: Date, index: number) => {
   let results = {
     answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
     date: mysqlDate,
-    problem_number: index + 1
+    problem_number: index + 1,
+    updateId: updateId.updateId
   }
-  console.log('results::', results)
   // ミューテーションが完了してからゲッターを使ってデータを取得
   forms.value[index] = results
   dates.value[index] = selectedDate
-  emit('updateResultData', results)
+  emit('updateResultData', results,index)
 }
 </script>
 

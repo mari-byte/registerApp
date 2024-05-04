@@ -169,6 +169,7 @@ const LevelMiddleref = ref()
 const LevelLowref = ref()
 const pulldownRef = ref()
 const dateRef = ref()
+const hoges = ref()
 
 const option1: string = 'option1'
 const option2: string = 'option2'
@@ -176,22 +177,20 @@ const option3: string = 'option3'
 const option4: string = 'option4'
 
 onMounted(async () => {
-  console.log('onMounted::スタート!')
   window.scroll({
     top: 0
   })
-  resData.value = await store.getters.getUpdateData.map((item) => {
+  resData.value = await store.getters.getUpdateData.rows.map((item) => {
     return {
       answer: item.answer,
       problem_number: item.problem_number,
       date: item.worked_date,
-      resultsId: item.id
+      updateId: item.id
     }
   })
   store.commit('modifyResults', resData.value)
 
   modifyData.value = store.getters.getResults
-  console.log('modifyData.valueの確認', modifyData.value)
 
   // ゆくゆくは以下を修正する必要がある
   // 備忘
@@ -201,9 +200,19 @@ onMounted(async () => {
     modifyData.value.shift()
   }
 
-  if (updateDateValue.value.length !== 0) {
-    const datas = updateDateValue.value.map((item) => {
-      return { answer: item.answer, date: item.worked_date, problem_number: item.problem_number }
+  // if (updateDateValue.value.length !== 0) {
+  if (updateDateValue.value) {
+    const beforeDatas = updateDateValue.value.filter(
+      (item) => item.answer !== null && item.date !== null && item.problem_number !== null
+    )
+
+    const datas = beforeDatas.map((item) => {
+      return {
+        answer: item.answer,
+        date: item.worked_date,
+        problem_number: item.problem_number,
+        updateId: item.id
+      }
     })
     for (const data of datas) {
       resAll.value.push(data)
@@ -226,7 +235,7 @@ const close = () => {
 }
 
 const updateTitleValue = computed(() => {
-  const updateTitle = store.getters.getUpdateData
+  const updateTitle = store.getters.getUpdateData.rows
   if (updateTitle && updateTitle.length > 0) {
     return updateTitle[0]?.title ?? ''
   } else {
@@ -234,12 +243,15 @@ const updateTitleValue = computed(() => {
   }
 })
 
-const getHeight = (value: number) => {
+const getHeight = (value: number, hoge?) => {
+  if (hoge) {
+    resAll.value = hoge
+  }
   checkHeight.value = value
 }
 
 const updateDescriptionValue = computed(() => {
-  const updatedescription = store.getters.getUpdateData
+  const updatedescription = store.getters.getUpdateData.rows
 
   if (updatedescription && updatedescription.length > 0) {
     return updatedescription[0]?.description ?? ''
@@ -249,7 +261,7 @@ const updateDescriptionValue = computed(() => {
 })
 
 const updatePriority = computed(() => {
-  const upPriority = store.getters.getUpdateData
+  const upPriority = store.getters.getUpdateData.rows
   let priorityValue = undefined
   if (upPriority && upPriority[0]?.priority === 1) {
     priorityValue = t('common.high')
@@ -264,7 +276,7 @@ const updatePriority = computed(() => {
 })
 
 const updateLevelModel = computed(() => {
-  const updatelevel = store.getters.getUpdateData
+  const updatelevel = store.getters.getUpdateData.rows
   let uplevelValue = undefined
   if (updatelevel && updatelevel[0]?.difficulty === 1) {
     uplevelValue = t('common.high')
@@ -278,7 +290,7 @@ const updateLevelModel = computed(() => {
   return uplevelValue
 })
 const updatePulldownValue = computed(() => {
-  const updatelevel = store.getters.getUpdateData
+  const updatelevel = store.getters.getUpdateData.rows
   let updatepulldown = undefined
   if (updatelevel && updatelevel[0]?.question_format === 1) {
     updatepulldown = option1
@@ -295,7 +307,7 @@ const updatePulldownValue = computed(() => {
 })
 
 const updateDateValue = computed(() => {
-  const updatelevel = store.getters.getUpdateData
+  const updatelevel = store.getters.getUpdateData.rows
   let updatepulldown = undefined
   if (updatelevel && updatelevel[0]?.question_format === 1) {
     updatepulldown = { option1, updatelevel }
@@ -337,8 +349,15 @@ const ChangePullDown = (value: string) => {
   pulldownValue.value = value
 }
 
-const ChangeResultsList = (value) => {
-  resAll.value.push(value)
+const ChangeResultsList = (value,index) => {
+  hoges.value = value;
+  const checkPush = hoges.value === resAll.value[index]
+  if (!checkPush) {
+    resAll.value.push(value)
+  }
+
+  // resAll.value.push(value)
+
   modifyResultsList(resAll.value)
 }
 
@@ -410,15 +429,15 @@ const showDelDialog = () => {
 const updatePercentCor = async () => {
   showDialogFlg.value = false
   const reqId = await store.getters.getUpdateId
-  // const reqDatas = await store.getters.getUpdateData
-  // if (0 < reqResults.value.length && reqResults.value[0].date === null) {
-  //   reqResults.value.shift()
-  // }
-
-  console.log('これめちゃ大事checkHeight.value::', checkHeight.value)
-  console.log('これめちゃ大事resAll.value::', resAll.value)
-  console.log('これめちゃ大事reqResults.value::', reqResults.value)
-  // console.log('これめちゃ大事reqResults.value.length::',results.length)
+  // 以下で最初のものとの比較を実施
+  const delhoge = await store.getters.getUpdateData.rows.map((item) => {
+    return {
+      answer: item.answer,
+      problem_number: item.problem_number,
+      date: item.worked_date,
+      updateId: item.id
+    }
+  })
 
   const requestData = {
     title:
@@ -461,24 +480,23 @@ const updatePercentCor = async () => {
       resAll.value === null || resAll.value === undefined || resAll.value.length === 0
         ? []
         : (reqResults.value === null ||
-          reqResults.value === undefined ||
-          reqResults.value.length === 0) && checkHeight.value !== 0
+            reqResults.value === undefined ||
+            reqResults.value.length === 0) &&
+          checkHeight.value !== 0
         ? resAll.value
         : checkHeight.value === 0
         ? []
         : reqResults.value,
-    id: reqId
+    id: reqId,
+    beforeValue: delhoge
   }
-
-  console.log('リクエストについての確認', requestData)
 
   // 処理を無理矢理止める
   // return
+
   axios
     .put('http://localhost:3000/api/update', requestData)
     .then((response) => {
-      console.log('レスポンスのデータ', response.data)
-
       window.scroll({
         top: 0
       })

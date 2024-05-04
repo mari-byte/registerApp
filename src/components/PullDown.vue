@@ -30,9 +30,11 @@
       {{ custombuttonDelName }}
     </button>
 
-    <div v-for="(form, index) in forms">
+    <div v-for="(form, index) in forms" v-if="selectedItem !== null">
       <Form class="element">
-        <label class="element" for="input">{{ $t('register.questionNumberLabel') + (index + 1) }}</label>
+        <label class="element" for="input">{{
+          $t('register.questionNumberLabel') + (index + 1)
+        }}</label>
         <div class="inline-radio">
           <div>
             <input
@@ -41,12 +43,17 @@
               :value="0"
               v-model="resultValue[index]"
               checked
+              @change="okE(index, dates[index])"
             /><label>○</label>
           </div>
           <div>
-            <input type="radio" name="member" :value="1" v-model="resultValue[index]" /><label
-              >×</label
-            >
+            <input
+              type="radio"
+              name="member"
+              :value="1"
+              v-model="resultValue[index]"
+              @change="ngE(index, dates[index])"
+            /><label>×</label>
           </div>
         </div>
         <div id="box">
@@ -114,6 +121,46 @@ defineExpose({
   resetField
 })
 
+const okE = (index: number, selectedDate?: Date) => {
+  if (selectedDate === undefined) {
+    return
+  }
+  const date = new Date(selectedDate)
+  const isoDateString = date.toISOString()
+
+  let results = {
+    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
+    workedDate: isoDateString,
+    problemNumber: index + 1
+  }
+
+  // ミューテーションが完了してからゲッターを使ってデータを取得
+  // forms.value[index] = results
+  // dates.value[index] = selectedDate
+
+  emit('updateResult', results)
+}
+
+const ngE = (index: number, selectedDate?: Date) => {
+  if (selectedDate === undefined) {
+    return
+  }
+  const date = new Date(selectedDate)
+  const isoDateString = date.toISOString()
+
+  let results = {
+    answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0,
+    workedDate: isoDateString,
+    problemNumber: index + 1
+  }
+
+  // ミューテーションが完了してからゲッターを使ってデータを取得
+  // forms.value[index] = results
+  // dates.value[index] = selectedDate
+
+  emit('updateResult', results)
+}
+
 const selectDate = (selectedDate: Date, index: number) => {
   const year = selectedDate.getFullYear()
   const month = ('0' + (selectedDate.getMonth() + 1)).slice(-2) // 月は0-indexedなので+1する
@@ -124,7 +171,7 @@ const selectDate = (selectedDate: Date, index: number) => {
     workedDate: mysqlDate,
     answer: resultValue.value[index] !== undefined ? resultValue.value[index] : 0
   }
-  dates.value[index] = selectedDate
+  // dates.value[index] = selectedDate
   emit('updateResult', results)
 }
 

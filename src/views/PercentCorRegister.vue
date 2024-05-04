@@ -81,7 +81,8 @@
     <br />
     <button class="create" @click.prevent="createPercentCor">{{ $t('button.register') }}</button>
     <button class="clear" @click.prevent="reset">{{ $t('button.clear') }}</button>
-    <button class="clear" @click.prevent="test">実験</button>
+    <br />
+    <br />
   </div>
 </template>
 
@@ -130,33 +131,6 @@ const backgroundHeight = computed(() => {
   }
 })
 
-const test = () => {
-  const req = [
-    { answer: 1, date: '2024-01-19T15:00:00.000Z', problem_number: 1 },
-    { answer: 1, date: '2020-04-09T15:00:00.000Z', problem_number: 2 },
-    { answer: 0, date: '2024-02-09T15:00:00.000Z', problem_number: 1 },
-    { answer: 1, date: '2024-02-09T15:00:00.000Z', problem_number: 1 },
-    { answer: 1, date: '2024-02-27T15:00:00.000Z', problem_number: 1 },
-    { answer: 0, date: '1990-12-25T07:55:00.000Z', problem_number: 3 },
-    { answer: 1, date: '2024-04-25T07:55:00.000Z', problem_number: 3 },
-    { answer: 1, date: '2024-02-04T15:00:00.000Z', problem_number: 1 },
-    { answer: 0, date: '2024-08-04T15:00:00.000Z', problem_number: 1 },
-    { answer: 0, date: '2024-10-25T07:55:00.000Z', problem_number: 3 },
-    { answer: 1, date: '2024-11-31T15:00:00.000Z', problem_number: 2 },
-    { answer: 1, date: '2024-03-31T15:00:00.000Z', problem_number: 4 },
-    { answer: 1, date: '2010-02-10T15:00:00.000Z', problem_number: 4 },
-  ]
-
-  // パターン1ひっくり返して重複削除
-  console.log("元々の配列",req)
-  const newReq = req.filter((currentItem, index, currentArray) => {
-    console.log(`インデックスは::${index}、アイテムは??${currentItem.problem_number} `)
-    return currentArray.slice(index + 1).every(nextItem => nextItem.problem_number !== currentItem.problem_number);
-  })
-
-  console.log("何が出力されるのかの確認",newReq)
-}
-
 const getHeight = (value: number) => {
   checkHeight.value = value
 }
@@ -182,8 +156,25 @@ const ChangePullDown = (value: string) => {
 }
 
 const ChangeResult = (value) => {
-  resAll.value.push(value)
+  // checkResults(value)
+  if (0 < resAll.value.length) {
+    const exsistRow = resAll.value.findIndex((item) => {
+      return item.problemNumber === value.problemNumber
+    })
+
+    if (exsistRow !== -1) {
+      resAll.value[exsistRow] = value
+    } else {
+      resAll.value.push(value)
+    }
+  } else {
+    resAll.value.push(value)
+  }
 }
+
+// const checkResults = (value) => {
+
+// }
 
 const reset = () => {
   titleInput.value.resetField()
@@ -195,6 +186,7 @@ const reset = () => {
   LevelMiddleref.value.resetField()
   LevelLowref.value.resetField()
   pulldownRef.value.resetField()
+
 
   if (delInputFlg.value) {
     delInputFlg.value = false
@@ -225,7 +217,6 @@ const createPercentCor = () => {
   axios
     .post('http://localhost:3000/api/create', requestData)
     .then((response) => {
-      console.log('レスポンスのデータ', response.data)
       reset()
 
       router.push({ name: 'Register' })
@@ -241,7 +232,6 @@ const createPercentCor = () => {
 
     .catch((error) => {
       isShow.value = true
-      console.log('apiのエラーについて', error)
       flashMessage.value = error.response.data.message
       messageClass.value = 'flash-message-error'
     })

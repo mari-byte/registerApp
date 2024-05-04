@@ -5,7 +5,7 @@ export default createStore({
   state: {
     // ステートの定義
     updateId: undefined,
-    updateData: [],
+    updateData: undefined,
     results: [],
   },
   mutations: {
@@ -33,7 +33,7 @@ export default createStore({
     },
 
     setUpdateFormat(state, data) {
-      state.updateData[0].question_format = data
+      state.updateData.rows[0].question_format = data
     }
   },
   actions: {

@@ -41,10 +41,6 @@
 
 <script setup lang="ts">
 import { ref, computed, defineComponent, onMounted } from 'vue'
-import Input from '@/components/Input.vue'
-import TextArea from '@/components/TextArea.vue'
-import RadioButton from '@/components/RadioButton.vue'
-import PullDown from '@/components/PullDown.vue'
 import FlashMessage from '@/components/FlashMessage.vue'
 import Dialog from '@/components/Dialog.vue'
 import axios from 'axios'
@@ -53,6 +49,7 @@ import Table from '@/components/TableComponent.vue'
 import { useI18n } from 'vue-i18n'
 import { headerList } from './labelSummarize.js'
 import { constants } from 'buffer'
+import { title } from 'process'
 
 // script部分で使用する際に必要
 const { t } = useI18n()
@@ -72,16 +69,28 @@ const messageClass = ref('')
 
 onMounted(async () => {
   resultsList.value = []
-  const resultsValues = await getResultsList()
   const resValues = await getTableValueList()
+  const resultsValues = await getResultsList()
   if (resultsValues.data) {
-    await filterArray(resultsValues.data)
+    await filterArray(resultsValues.data.rows)
   } else {
     resultsList.value = []
   }
 
   if (resValues.data) {
-    await mappedArray(resValues.data)
+
+    // タイトルの昇順で並び替え
+    resValues.data.rows.sort((a, b) => {
+      if (a.title > b.title) {
+        return 1
+      } else if (b.title > a.title) {
+        return -1
+      } else {
+        return 0
+      }
+    })
+
+    await mappedArray(resValues.data.rows)
   } else {
     valuesList.value = []
   }
@@ -139,7 +148,6 @@ const filterArray = async (values) => {
   // resultsList.value = await values.filter(
   //   (item) => item.answer === 1 && new Date(item.worked_date) < oneWeekAgo
   // )
-
   let missList = await values.filter((item) => item.answer === 1)
 
   let beforeList = missList.filter((e, index, array) => {
@@ -163,6 +171,9 @@ const getTableValueList = async () => {
 const getResultsList = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/resultList')
+    // const response = await axios.get('http://localhost:3000/api/resultList',{
+    //   params: { updateId: Response }
+    // })
     return response.data
   } catch (error) {
     throw new Error(error)
@@ -177,7 +188,6 @@ const deleteTableValueList = async (id: number) => {
     const response = await axios.delete(`http://localhost:3000/api/deleteList/${request}`)
     const responses = await getTableValueList()
 
-    console.log('★★★★responseについての確認', response)
     isShow.value = true
     flashMessage.value = t('flashMessages.deleteSuccess')
     messageClass.value = 'delete-message-success'
@@ -193,7 +203,7 @@ const deleteTableValueList = async (id: number) => {
       messageClass.value = undefined
     }, 1500)
 
-    await mappedArray(responses.data) // 削除後に一覧を再マップ
+    await mappedArray(responses.data.rows) // 削除後に一覧を再マップ
     close()
     return response.data
   } catch (error) {

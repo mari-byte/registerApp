@@ -47,7 +47,6 @@ import FlashMessage from '@/components/FlashMessage.vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-// import { table } from 'console'
 const router = useRouter()
 const store = useStore()
 const emit = defineEmits()
@@ -68,7 +67,6 @@ const updatePercentCorList = async (ids: number) => {
 
   const resData = await getUpdateTitle(ids)
   store.commit('setUpdateData', resData)
-
   router.push({ name: 'ListUpdate' })
 }
 
@@ -77,8 +75,6 @@ const getUpdateTitle = async (id: number) => {
     const response = await axios.get('http://localhost:3000/api/updatelist', {
       params: { updateId: id }
     })
-
-    console.log("もしかしたら取れているかも",response.data)
     return response.data
   } catch (error) {
     throw new Error(error)
